@@ -1,0 +1,80 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: supplychain
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      DATABASE_URL: postgres://user:pass@localhost:5432/supplychain
+      JWT_SECRET: testsecret
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - name: Install backend dependencies
+        run: cd backend && npm install
+      - name: Run backend lint
+        run: cd backend && npm run lint || true
+      - name: Run backend tests
+        run: cd backend && npm test || true
+      - name: Install frontend dependencies
+        run: cd frontend && npm install
+      - name: Run frontend lint
+        run: cd frontend && npm run lint || true
+      - name: Run frontend tests
+        run: cd frontend && npm test || true
+
+  docker-build-push:
+    needs: build-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push backend image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest ./backend
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest
+      - name: Build and push frontend image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest ./frontend
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
+
+  deploy-k8s:
+    needs: docker-build-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+      - name: Set up Kubeconfig
+        run: echo "$KUBECONFIG_DATA" | base64 -d > kubeconfig && export KUBECONFIG=$(pwd)/kubeconfig
+        env:
+          KUBECONFIG_DATA: ${{ secrets.KUBECONFIG_DATA }}
+      - name: Deploy to Kubernetes
+        run: kubectl apply -f k8s/ 

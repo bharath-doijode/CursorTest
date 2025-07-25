@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Supplier in the food supply chain
+model Supplier {
+  id        Int      @id @default(autoincrement())
+  name      String
+  contact   String?
+  address   String?
+  products  Product[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Product managed in the supply chain
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  quantity    Int      @default(0)
+  supplierId  Int
+  supplier    Supplier @relation(fields: [supplierId], references: [id])
+  orders      Order[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+/// Order placed for products
+model Order {
+  id         Int      @id @default(autoincrement())
+  productId  Int
+  product    Product  @relation(fields: [productId], references: [id])
+  quantity   Int
+  status     String   // e.g., 'pending', 'shipped', 'delivered'
+  tracking   Tracking?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+/// Tracking information for orders
+model Tracking {
+  id        Int      @id @default(autoincrement())
+  orderId   Int      @unique
+  order     Order    @relation(fields: [orderId], references: [id])
+  status    String   // e.g., 'in transit', 'delivered'
+  location  String?
+  updatedAt DateTime @updatedAt
+}
+
+/// User for authentication and authorization
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String   // Hashed password
+  name      String?
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  SUPPLIER
+  USER
+}
