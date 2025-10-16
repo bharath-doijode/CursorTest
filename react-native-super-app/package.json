@@ -1,0 +1,58 @@
+{
+  "name": "react-native-super-app",
+  "version": "1.0.0",
+  "description": "React Native Super App with Module Federation using Re.Pack and Zephyr",
+  "private": true,
+  "workspaces": [
+    "HostApp",
+    "MiniApp1", 
+    "MiniApp2",
+    "MiniApp3"
+  ],
+  "scripts": {
+    "setup": "./scripts/setup.sh",
+    "dev:start": "./scripts/dev-start.sh",
+    "build:all": "./scripts/build-all.sh",
+    "build:zephyr": "./scripts/build-all.sh --zephyr",
+    "install-all": "npm install && npm run install:host && npm run install:mini1 && npm run install:mini2 && npm run install:mini3",
+    "install:host": "cd HostApp && npm install",
+    "install:mini1": "cd MiniApp1 && npm install", 
+    "install:mini2": "cd MiniApp2 && npm install",
+    "install:mini3": "cd MiniApp3 && npm install",
+    "start": "npm run start:host",
+    "start:host": "cd HostApp && npm start",
+    "start:mini1": "cd MiniApp1 && npm start",
+    "start:mini2": "cd MiniApp2 && npm start", 
+    "start:mini3": "cd MiniApp3 && npm start",
+    "bundle:all": "npm run bundle:mini1 && npm run bundle:mini2 && npm run bundle:mini3 && npm run bundle:host",
+    "bundle:host": "cd HostApp && npm run bundle",
+    "bundle:mini1": "cd MiniApp1 && npm run bundle",
+    "bundle:mini2": "cd MiniApp2 && npm run bundle",
+    "bundle:mini3": "cd MiniApp3 && npm run bundle",
+    "zephyr:bundle:all": "ZC=1 npm run bundle:all",
+    "android": "cd HostApp && npm run android",
+    "ios": "cd HostApp && npm run ios",
+    "test": "npm run test:host && npm run test:mini1 && npm run test:mini2 && npm run test:mini3",
+    "test:host": "cd HostApp && npm test",
+    "test:mini1": "cd MiniApp1 && npm test",
+    "test:mini2": "cd MiniApp2 && npm test",
+    "test:mini3": "cd MiniApp3 && npm test",
+    "lint": "npm run lint:host && npm run lint:mini1 && npm run lint:mini2 && npm run lint:mini3",
+    "lint:host": "cd HostApp && npm run lint",
+    "lint:mini1": "cd MiniApp1 && npm run lint",
+    "lint:mini2": "cd MiniApp2 && npm run lint",
+    "lint:mini3": "cd MiniApp3 && npm run lint",
+    "clean": "npm run clean:host && npm run clean:mini1 && npm run clean:mini2 && npm run clean:mini3",
+    "clean:host": "cd HostApp && rm -rf node_modules && npm install",
+    "clean:mini1": "cd MiniApp1 && rm -rf node_modules && npm install",
+    "clean:mini2": "cd MiniApp2 && rm -rf node_modules && npm install",
+    "clean:mini3": "cd MiniApp3 && rm -rf node_modules && npm install"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
